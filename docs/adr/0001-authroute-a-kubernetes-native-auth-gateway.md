@@ -1,10 +1,11 @@
 # ADR-0001 — AuthRoute: a Kubernetes-native auth gateway on Envoy Gateway
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-06-13
 - **Supersedes:** —
 - **Companion:** [ADR-0002](0002-per-route-authorization-crd.md), [ADR-0003](0003-identity-via-oidc-oauth.md), [ADR-0004](0004-envoy-gateway-integration-mechanism.md)
 - **Scope:** Product vision, high-level topology, language/runtime — `v1alpha1`
+- **Informed by:** [docs/research/](../research/)
 
 ## Context
 

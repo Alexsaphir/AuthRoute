@@ -1,10 +1,11 @@
 # ADR-0004 — Envoy Gateway integration mechanism
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-06-13
 - **Supersedes:** —
 - **Companion:** [ADR-0001](0001-authroute-a-kubernetes-native-auth-gateway.md), [ADR-0002](0002-per-route-authorization-crd.md), [ADR-0003](0003-identity-via-oidc-oauth.md)
 - **Scope:** Data-plane integration — `v1alpha1`
+- **Informed by:** [research/envoy-gateway.md](../research/envoy-gateway.md), [research/authelia.md](../research/authelia.md)
 
 ## Context
 
@@ -33,8 +34,44 @@ in, given that overlap:
 
 ## Decision
 
-_To be decided._
+**AuthRoute runs as an HTTP external-authorization (forward-auth) service** — the
+`extAuth.http` backend of an Envoy Gateway `SecurityPolicy`. It makes the
+allow/deny decision **per request**. It does *not* delegate login to Envoy's
+built-in OIDC and does *not* compile policy into Envoy's static `authorization`
+rules engine.
+
+1. **Forward-auth via `extAuth.http`.** A `SecurityPolicy` targeting the route
+   references AuthRoute's Kubernetes Service as the `extAuth.http` backend. For
+   each request Envoy forwards request context (`X-Forwarded-Host` /
+   `-Method` / `-Uri` / `-Proto`, cookies) to AuthRoute's `/authz` endpoint.
+   HTTP (not `grpc`) is chosen for the forward-auth style and for parity with
+   Authelia's `handler_authz_impl_extauthz.go` reference
+   ([research/authelia.md](../research/authelia.md)).
+2. **Decision responses:**
+   - **Allow** → `200` plus the `Remote-*` identity headers, propagated upstream
+     via `extAuth.headersToBackend` ([ADR-0003](0003-identity-via-oidc-oauth.md) §5).
+   - **Unauthenticated** (browser, no valid session cookie) → redirect to the
+     auth portal (`auth.example.com`, ADR-0003) with a return-URL, where the OIDC
+     flow runs and the domain-wide SSO cookie is set.
+   - **Authenticated but not permitted** → `403`.
+3. **Fail closed.** `extAuth.failOpen = false` (the default). Because this is a
+   security control, an unavailable AuthRoute denies rather than admits traffic.
+4. **Why not the alternatives:** Envoy's built-in `oidc` is per-route and gives no
+   cross-subdomain SSO (ADR-0003); its `authorization` engine only matches static
+   JWT claims/CIDRs, not AuthRoute's session-derived, dynamically-resolved
+   `Subject` (see [research/envoy-gateway.md](../research/envoy-gateway.md)).
 
 ## Consequences
 
-_To be completed once the decision is made._
+- AuthRoute is **on the request hot path**: per-request latency and availability
+  become SLOs. Session validation should be cheap/cacheable to keep added latency
+  low.
+- **Fail-closed means an AuthRoute outage blocks every protected app**, so it must
+  be run highly available. This is an accepted, deliberate trade-off.
+- We reuse Envoy Gateway's mature `extAuth` plumbing instead of reimplementing a
+  data plane — at the cost of binding tightly to Envoy Gateway / Gateway API.
+- **Open (decided in [ADR-0002](0002-per-route-authorization-crd.md)):** whether
+  AuthRoute *reconciles* the `SecurityPolicy` that wires `extAuth` to each route
+  from its per-route CRD, or whether users author the `SecurityPolicy` and merely
+  reference AuthRoute's Service.
+
