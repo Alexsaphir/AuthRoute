@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-06-13
 - **Supersedes:** —
-- **Companion:** [ADR-0001](0001-authroute-a-kubernetes-native-auth-gateway.md), [ADR-0004](0004-envoy-gateway-integration-mechanism.md)
+- **Companion:** [ADR-0001](0001-authroute-a-kubernetes-native-auth-gateway.md), [ADR-0004](0004-envoy-gateway-integration-mechanism.md), [ADR-0005](0005-session-storage.md)
 - **Scope:** Identity model — `v1alpha1`
 - **Informed by:** [research/authelia.md](../research/authelia.md), [research/envoy-gateway.md](../research/envoy-gateway.md)
 
@@ -65,6 +65,6 @@ Gateway's built-in per-route OIDC.
 - SSO across subdomains is gained; **single logout** is harder — clearing the
   AuthRoute cookie is straightforward, but propagating logout to the OIDC provider
   requires the optional end-session endpoint.
-- **Open follow-up:** session storage strategy — stateless signed/encrypted cookie
-  vs. a server-side session store (and what backs it). Deferred to its own ADR.
+- **Session storage:** decided in [ADR-0005](0005-session-storage.md) — a
+  server-side store (opaque session-ID cookie, Redis-protocol backend).
 

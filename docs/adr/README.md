@@ -26,6 +26,7 @@ Proposed → Accepted → (Deprecated | Superseded by NNNN)
 | 0002 | [Per-route authorization custom resource](0002-per-route-authorization-crd.md)     | Accepted |
 | 0003 | [Identity via OIDC / OAuth](0003-identity-via-oidc-oauth.md)                        | Accepted |
 | 0004 | [Envoy Gateway integration mechanism](0004-envoy-gateway-integration-mechanism.md) | Accepted |
+| 0005 | [Session storage: server-side store over the Redis protocol](0005-session-storage.md) | Accepted |
 
 Supporting research notes live in [`../research/`](../research/).
 
