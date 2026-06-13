@@ -29,9 +29,14 @@ async fn main() {
 
     let app = Router::new()
         .route("/healthz", get(healthz))
-        // Envoy's ext_authz check can arrive on any path (it carries the real
-        // target in X-Forwarded-* headers), so every other path is a check.
-        .fallback(any(authz));
+        // Envoy calls the ext_authz HTTP service at the configured `path`
+        // (`/api/authz/ext-authz/`, matching Authelia) and appends the original
+        // request path to it — so we register the base path plus a catch-all for
+        // the appended segments, on any method. The authoritative target is
+        // always read from the X-Forwarded-* headers, not from this path.
+        .route("/api/authz/ext-authz", any(authz))
+        .route("/api/authz/ext-authz/", any(authz))
+        .route("/api/authz/ext-authz/{*rest}", any(authz));
 
     let port: u16 = std::env::var("AUTHROUTE_PORT")
         .ok()
