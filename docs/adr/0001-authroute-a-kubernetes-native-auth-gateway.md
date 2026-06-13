@@ -48,12 +48,13 @@ High-level topology:
 - **OIDC/OAuth for identity.** Users and groups come from an external OIDC
   provider; claims map to the groups/users referenced by route policies.
   *(Decided in ADR-0003.)*
-- **Coupled to Envoy Gateway.** AuthRoute participates in request evaluation
-  through Envoy Gateway's external-authorization / OIDC machinery
-  (`SecurityPolicy`). Whether AuthRoute owns the OIDC flow or delegates login to
-  Envoy Gateway and acts purely as the ext_authz decision service — and whether
-  it *generates* `SecurityPolicy` resources or is *referenced* by them — is
-  decided in ADR-0004.
+- **Coupled to Envoy Gateway through forward-auth only.** AuthRoute's *sole*
+  coupling to the data plane is Envoy Gateway's external-authorization
+  (`extAuth`, forward-auth) hook: a `SecurityPolicy` forwards requests to
+  AuthRoute, which returns allow/deny. AuthRoute deliberately does **not** use
+  Envoy Gateway's built-in OIDC (it is per-route and cannot back a shared
+  cross-subdomain session) — AuthRoute owns the OIDC flow itself. *(Mechanism in
+  ADR-0004; identity/session in ADR-0003.)*
 
 Load-bearing principle to preserve in every change: **AuthRoute is an operator
 that reconciles Kubernetes resources into authorization behavior, and policy is
@@ -74,8 +75,9 @@ the design discipline of `home-operations/kopiur`, the reference for this projec
 - Protection becomes a property co-located with the route, enabling GitOps and
   per-team ownership instead of a shared config file — but it raises new
   questions about defaults and cluster-wide policy that future ADRs must address.
-- Binding tightly to Envoy Gateway buys us a maintained ext_authz/OIDC mechanism
-  and narrows scope, at the cost of portability to other gateways.
+- Binding tightly to Envoy Gateway's `extAuth` (forward-auth) hook buys us a
+  maintained request-interception mechanism and narrows scope, at the cost of
+  portability to other gateways. (Identity/OIDC is AuthRoute's own, not Envoy's.)
 - This ADR sets direction only. The concrete, testable decisions — CRD shape
   (ADR-0002), identity/OIDC mapping (ADR-0003), and the Envoy integration
   mechanism (ADR-0004) — are deferred to their own records and still open.

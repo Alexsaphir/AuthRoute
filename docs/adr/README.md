@@ -23,7 +23,7 @@ Proposed → Accepted → (Deprecated | Superseded by NNNN)
 | ---- | ---------------------------------------------------------------------------------- | -------- |
 | 0000 | [Record architecture decisions](0000-record-architecture-decisions.md)             | Accepted |
 | 0001 | [AuthRoute: a Kubernetes-native auth gateway on Envoy Gateway](0001-authroute-a-kubernetes-native-auth-gateway.md) | Accepted |
-| 0002 | [Per-route authorization custom resource](0002-per-route-authorization-crd.md)     | Proposed |
+| 0002 | [Per-route authorization custom resource](0002-per-route-authorization-crd.md)     | Accepted |
 | 0003 | [Identity via OIDC / OAuth](0003-identity-via-oidc-oauth.md)                        | Accepted |
 | 0004 | [Envoy Gateway integration mechanism](0004-envoy-gateway-integration-mechanism.md) | Accepted |
 

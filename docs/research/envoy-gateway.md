@@ -48,9 +48,42 @@ both pointing at `backendRefs` (Service / ServiceImport / Backend). Notable fiel
 
 - `failOpen *bool` — if true, allow traffic when the ext-auth service can't be
   reached. Default behavior is fail-closed.
-- `HTTPExtAuthService.headersToBackend []string` — response headers from the
+- `headersToExtAuth []string` (on `ExtAuth`) — the **request** headers Envoy
+  forwards *to* the auth service. Must include `cookie` so the auth service can
+  read the session cookie, plus `x-forwarded-*` so it knows the original
+  host/proto/client.
+- `HTTPExtAuthService.path` — the path on the auth service that receives the
+  check (e.g. Authelia's `/api/authz/ext-authz/`).
+- `HTTPExtAuthService.headersToBackend []string` — **response** headers from the
   ext-auth service that Envoy adds to the request before forwarding upstream.
   (This is how identity headers like `Remote-User` reach the app.)
+
+### Real-world wiring: it's typically **gateway-wide**, not per-route
+
+A working Authelia `SecurityPolicy` (provided by the AuthRoute author) targets the
+**`Gateway`**, not individual `HTTPRoute`s:
+
+```yaml
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy
+  extAuth:
+    failOpen: false
+    headersToExtAuth: [accept, cookie, location, authorization,
+      proxy-authorization, header-authorization, x-forwarded-proto, x-forwarded-for]
+    http:
+      backendRefs: [{ kind: Service, name: authelia, namespace: kube-auth, port: 80 }]
+      path: /api/authz/ext-authz/
+      headersToBackend: [Remote-User, Remote-Groups, Remote-Name, Remote-Email]
+```
+
+So **one** `SecurityPolicy` sends *all* of the gateway's traffic to the auth
+service, and the auth service decides per request from the forwarded
+host/path/cookie. Per-route differentiation lives **inside** the auth service,
+not in many per-route `SecurityPolicy` resources. This directly shapes AuthRoute's
+enforcement model (ADR-0002 D5).
 
 ### `authorization` — a built-in rules engine
 
@@ -75,5 +108,9 @@ reason AuthRoute runs as `extAuth` rather than compiling into this engine.
   cross-subdomain SSO) and does **not** compile into the `authorization` engine.
 - `failOpen` defaults matter: AuthRoute is a security control, so **fail-closed**
   is the intended default — accept the availability cost.
-- Open (ADR-0002/0004): does AuthRoute *generate* the `SecurityPolicy` that wires
-  `extAuth` to a route, or do users author it and reference AuthRoute's Service?
+- The `SecurityPolicy` wiring is **gateway-wide** (one resource per Gateway), so
+  AuthRoute must match each request to the right route policy *at request time*
+  (from forwarded host/path), rather than relying on per-route `SecurityPolicy`
+  resources. Resolved (ADR-0002 D5): AuthRoute's **Helm chart** ships that one
+  gateway-wide `SecurityPolicy` with `targetRefs` as a chart value — not the
+  controller (no runtime RBAC over the Envoy CRD).
