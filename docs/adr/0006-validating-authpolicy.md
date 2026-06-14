@@ -40,9 +40,8 @@ binary, validates every `AuthPolicy` create/update** and rejects invalid ones
 synchronously. The controller separately reports ongoing attachment status.
 
 1. **Webhook checks (reject admission with an actionable message on any failure):**
-   1. **Target exists** — the `HTTPRoute` named by `targetRef` (and the
-      `sectionName`, if set) exists in the policy's namespace (local `targetRef`,
-      ADR-0002 §D7).
+   1. **Target exists** — the `HTTPRoute` named by `targetRef` exists in the
+      policy's namespace (local `targetRef`, ADR-0002 §D7).
    2. **CEL valid** — `defaultPolicy` and every `extraPolicy[].policy` parse,
       **type-check** against the fixed activation schema (`user: string`,
       `groups: list<string>`, `claims: map<string, dyn>` — ADR-0002 §D4), and yield
@@ -66,8 +65,8 @@ synchronously. The controller separately reports ongoing attachment status.
    caveat. The webhook's existence check (1.i) is point-in-time; the `HTTPRoute` can
    be deleted *after* the `AuthPolicy` is admitted. So the controller reports Gateway
    API `PolicyStatus` conditions over time: `Accepted`, `ResolvedRefs=False` when the
-   target/`sectionName` later goes missing, and a conflict condition when a second
-   `AuthPolicy` contends for the same `(route, sectionName)` (ADR-0002 §D6). The
+   target later goes missing, and a conflict condition when a second
+   `AuthPolicy` contends for the same `HTTPRoute` (ADR-0002 §D6). The
    controller must re-evaluate on `HTTPRoute` changes, not only on `AuthPolicy`
    changes.
 6. **Cheap structural checks stay in the schema.** Required `defaultPolicy`,

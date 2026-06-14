@@ -41,8 +41,10 @@ collected in the Decision section.
 - **A (chosen): a CRD owned by this project, following the Gateway API
   Policy-attachment pattern.** AuthRoute defines its own CRD in group
   `authroute.dev` (not a reused upstream type), which **targets an `HTTPRoute`** via
-  a Gateway API `targetRef` — reusing `LocalPolicyTargetReferenceWithSectionName` so
-  it can also pin a single `HTTPRouteRule` by `sectionName`. Project-owned schema,
+  a Gateway API `targetRef` — reusing `LocalPolicyTargetReference` (`{group, kind,
+  name}`, same namespace). The whole `HTTPRoute` is the unit of attachment;
+  sub-path refinement is handled by `extraPolicy` (D4), not by a
+  `sectionName`-pinned `HTTPRouteRule`. Project-owned schema,
   standard attachment mechanism. How attachment validity and status are
   checked/reported is decided in [ADR-0006](0006-validating-authpolicy.md).
 - B: a project CRD with its **own** host/path selectors instead of `targetRef`.
@@ -172,10 +174,10 @@ policy applies and evaluate it.
   drift from it. *(Conflicts with D1-A.)*
 
 ### D6 — Conflicts & precedence
-- **A (chosen):** at most one `AuthPolicy` per `(route, sectionName)`; a second
+- **A (chosen):** at most one `AuthPolicy` per `HTTPRoute`; a second
   fails to attach and reports a `ResolvedRefs`/`Accepted=False` condition (per
-  Gateway API). A `sectionName`-scoped policy is more specific than one targeting
-  the whole `HTTPRoute`.
+  Gateway API). Sub-path precedence lives entirely inside one policy's ordered
+  `extraPolicy` list (D4), so there are no cross-policy override semantics.
 
 ### D7 — Namespacing
 - **Chosen:** namespaced CRD living beside the `HTTPRoute`; local `targetRef`
@@ -195,7 +197,6 @@ spec:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: grafana
-    # sectionName: <rule-name>   # optional: protect one HTTPRouteRule
   defaultPolicy: '"admins" in groups || user == "alice@example.com"'   # D3-A
   extraPolicy:                   # D4-A — optional, ordered; first match wins
     - pathRegex: '^/public(/.*)?$'
@@ -213,9 +214,10 @@ The per-route authorization surface is a single Gateway API-style **Policy** CRD
 group `authroute.dev`:
 
 1. **`AuthPolicy`** (Direct), namespaced (D1, D2, D7), carrying a `targetRef`
-   (`LocalPolicyTargetReferenceWithSectionName`) that targets an **`HTTPRoute`**
-   (optionally one `HTTPRouteRule` via `sectionName`). There is **no** Gateway-level
-   or inherited-default kind; secure-by-default comes from default-deny (D5b).
+   (`LocalPolicyTargetReference`) that targets an **`HTTPRoute`** as a whole.
+   Sub-path scoping is done with `extraPolicy` (D4), not a `sectionName`. There is
+   **no** Gateway-level or inherited-default kind; secure-by-default comes from
+   default-deny (D5b).
 2. **The authorization decision is a CEL boolean expression** (D3). The `spec`
    carries a required `defaultPolicy` and an optional, **ordered** `extraPolicy`
    list of `{ pathRegex, policy }`; per request, the first matching `pathRegex`
@@ -246,7 +248,7 @@ group `authroute.dev`:
    an admission webhook rejects invalid policies synchronously, and the controller
    reports ongoing `PolicyStatus`/`Accepted`/`ResolvedRefs` conditions (e.g. the
    target `HTTPRoute` later deleted, or a second `AuthPolicy` contending for the same
-   `(route, sectionName)`, D6).
+   `HTTPRoute`, D6).
 
 See the "Recommended shape (sketch)" above for the concrete YAML.
 
@@ -277,9 +279,10 @@ See the "Recommended shape (sketch)" above for the concrete YAML.
   stay cheap.
 - **`pathRegex` granularity**: `extraPolicy` sub-divides an already-`targetRef`-ed
   route — a refinement of D5b, not a contradiction (the policy still does not
-  *select* its route by path). It overlaps with `sectionName` (D1) but is finer-
-  grained; both may coexist. `extraPolicy` is **order-sensitive** (first match
-  wins), so reordering changes behavior — `.status`/docs must make the order legible.
+  *select* its route by path). It is the **only** sub-route mechanism: there is no
+  `sectionName`, so all path scoping lives in one policy's ordered list.
+  `extraPolicy` is **order-sensitive** (first match wins), so reordering changes
+  behavior — `.status`/docs must make the order legible.
 - The gateway-wide `SecurityPolicy` is shipped by the **Helm chart** with
   `targetRefs` as a value (D5-A); the **controller needs no RBAC over
   `SecurityPolicy`** and runs no reconcile loop for it. The chart and AuthRoute must

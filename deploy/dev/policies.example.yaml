@@ -1,0 +1,15 @@
+# Example stub policy file for local runs (AUTHROUTE_POLICY_FILE).
+#
+# This is an M2 development input only. In production the policy table is built
+# by the controller from HTTPRoute + AuthPolicy resources (M3); this file maps a
+# host directly to its CEL policy so the decision engine can be exercised without
+# a cluster. Each `policy` / `defaultPolicy` is a CEL expression over the session
+# Subject (`user`, `groups`, reserved `claims`) — see ADR-0002 §D3-D4.
+routes:
+  - host: app.example.com
+    defaultPolicy: '"admins" in groups'
+    extraPolicy:
+      - pathRegex: '^/public(/.*)?$'
+        policy: 'true'
+      - pathRegex: '^/api(/.*)?$'
+        policy: 'user != ""'

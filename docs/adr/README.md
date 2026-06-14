@@ -28,6 +28,7 @@ Proposed → Accepted → (Deprecated | Superseded by NNNN)
 | 0004 | [Envoy Gateway integration mechanism](0004-envoy-gateway-integration-mechanism.md) | Accepted |
 | 0005 | [Session storage: server-side store over the Redis protocol](0005-session-storage.md) | Accepted |
 | 0006 | [Validating AuthPolicy via an admission webhook](0006-validating-authpolicy.md)     | Accepted |
+| 0007 | [Layered Cargo workspace and manifest codegen](0007-layered-workspace-and-manifest-codegen.md) | Accepted |
 
 Supporting research notes live in [`../research/`](../research/).
 

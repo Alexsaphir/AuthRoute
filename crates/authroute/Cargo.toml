@@ -1,0 +1,21 @@
+[package]
+name = "authroute"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "authroute"
+path = "src/main.rs"
+
+[dependencies]
+authroute-api.workspace = true
+# Selects the Kubernetes API version for k8s-openapi (required by a final binary).
+k8s-openapi = { workspace = true, features = ["latest"] }
+axum.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_yaml.workspace = true

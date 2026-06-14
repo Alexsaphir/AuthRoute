@@ -1,10 +1,42 @@
-[package]
-name = "AuthRoute"
+[workspace]
+resolver = "3"
+members = ["crates/api", "crates/authroute", "crates/xtask"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.95"
+license = "AGPL-3.0-only"
 
-[dependencies]
+[workspace.dependencies]
+# Internal crates
+authroute-api = { path = "crates/api" }
+
+# Kubernetes / controller-runtime
+kube = { version = "3.1", default-features = false }
+k8s-openapi = { version = "0.27", default-features = false, features = ["schemars"] }
+schemars = "1"
+
+# Serde
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+# Async runtime
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "process", "io-util", "time", "signal"] }
+futures = "0.3"
+
+# Web / webhook
 axum = "0.8"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std", "tls12"] }
+
+# Observability
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Policy language + matching (shared parse/eval path, ADR-0002/0006).
+cel = "0.13"
+regex = "1"
+
+# Errors / utilities
+thiserror = "2"

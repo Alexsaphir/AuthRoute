@@ -1,0 +1,15 @@
+[package]
+name = "xtask"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# Build helper: generates deploy/ manifests from the Rust types (codegen, not
+# hand-written YAML). See docs/research/kopiur.md and ADR-0007.
+[dependencies]
+authroute-api.workspace = true
+kube = { workspace = true, features = ["derive"] }
+# Selects the Kubernetes API version for k8s-openapi (required by a final binary).
+k8s-openapi = { workspace = true, features = ["latest"] }
+serde_yaml.workspace = true
