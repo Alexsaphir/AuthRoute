@@ -23,11 +23,11 @@ Proposed → Accepted → (Deprecated | Superseded by NNNN)
 | ---- | ---------------------------------------------------------------------------------- | -------- |
 | 0000 | [Record architecture decisions](0000-record-architecture-decisions.md)             | Accepted |
 | 0001 | [AuthRoute: a Kubernetes-native auth gateway on Envoy Gateway](0001-authroute-a-kubernetes-native-auth-gateway.md) | Accepted |
-| 0002 | [Per-route authorization custom resource](0002-per-route-authorization-crd.md)     | Accepted (§D3–D4 superseded by 0006) |
+| 0002 | [Per-route authorization custom resource](0002-per-route-authorization-crd.md)     | Accepted |
 | 0003 | [Identity via OIDC / OAuth](0003-identity-via-oidc-oauth.md)                        | Accepted |
 | 0004 | [Envoy Gateway integration mechanism](0004-envoy-gateway-integration-mechanism.md) | Accepted |
 | 0005 | [Session storage: server-side store over the Redis protocol](0005-session-storage.md) | Accepted |
-| 0006 | [Authorization policy expressed in CEL](0006-policy-expressed-in-cel.md)            | Accepted |
+| 0006 | [Validating AuthPolicy via an admission webhook](0006-validating-authpolicy.md)     | Accepted |
 
 Supporting research notes live in [`../research/`](../research/).
 

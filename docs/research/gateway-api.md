@@ -51,8 +51,9 @@ rejected the policy and why.
 - AuthRoute's per-route auth resource should be a **Gateway API Policy**: reuse
   `LocalPolicyTargetReferenceWithSectionName` to target an `HTTPRoute` (and a
   specific rule via `SectionName`), rather than inventing a bespoke selector.
-- Strongly consider supporting **both** Direct (per-route override) and Inherited
-  (Gateway-wide default: "everything behind this gateway requires auth") — this is
-  an explicit ADR-0002 decision.
+- Direct vs. Inherited is an explicit ADR-0002 decision. **ADR-0002 §D2 chose a
+  single Direct kind (`AuthPolicy`, targets `HTTPRoute`) only** — secure-by-default
+  is provided by default-deny instead of an Inherited Gateway policy, so the
+  Inherited variant was rejected for `v1alpha1` (revisitable later).
 - Mirror `PolicyStatus`/`Accepted` conventions in `.status`, including the
   "fail to attach + report condition" behavior for missing `SectionName`.

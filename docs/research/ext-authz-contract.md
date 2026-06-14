@@ -43,13 +43,13 @@ transmitted securely) → `400`.
 1. Build the `Object` (host/path/method) from forwarded headers; require https.
 2. Read the **session cookie**, resolve it to a `Subject { username, groups[] }`.
    *(AuthRoute: look the opaque session ID up in the store — [ADR-0005](../adr/0005-session-storage.md).)*
-3. Determine the **required level** for `(Subject, Object)`. **This is the only
-   place AuthRoute diverges from Authelia:** Authelia matches a central ACL;
-   AuthRoute matches the request host/path against its runtime CRD table
+3. Determine the **decision** for `(Subject, Object)`. **This is the only place
+   AuthRoute diverges from Authelia:** Authelia matches a central ACL; AuthRoute
+   matches the request host/path against its runtime CRD table
    ([ADR-0002](../adr/0002-per-route-authorization-crd.md) D5b) to find the
-   `RouteAuthPolicy` and its `rule` (`public` / `authenticated` /
-   `restricted{allow}`), falling back to the `GatewayAuthPolicy` default or
-   default-deny.
+   `AuthPolicy` for the route, selects the CEL expression (`extraPolicy` first
+   `pathRegex` match, else `defaultPolicy`), and evaluates it against the `Subject`.
+   A request matching no `AuthPolicy` is **default-denied**.
 4. Compare the authenticated level against the required level → Authorized /
    Unauthorized / Forbidden.
 

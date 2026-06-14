@@ -67,13 +67,13 @@ The AND case is exactly the expressiveness AuthRoute **loses** with the flat OR
 allow-list (see [authelia.md](authelia.md) — Authelia's `[][]string` AND/OR). CEL
 regains it, plus claim predicates, for free.
 
-## Tension with ADR-0001 / ADR-0002
+## Tension with ADR-0001
 
-ADR-0002 §D3–D4 deliberately chose a **typed, exhaustive** surface (`rule` enum +
-`{group}|{user}` matchers) so invalid states are unrepresentable. CEL is the
-opposite: a **stringly-typed escape hatch**. A typo or type error (`groups ==
-"admin"` comparing a list to a string) is representable and, naively, only fails at
-**request time** — the worst time for an auth gateway.
+A typed, exhaustive surface (`rule` enum + `{group}|{user}` matchers) would keep
+invalid states unrepresentable (ADR-0001). CEL is the opposite: a **stringly-typed
+escape hatch**. A typo or type error (`groups == "admin"` comparing a list to a
+string) is representable and, naively, only fails at **request time** — the worst
+time for an auth gateway.
 
 Mitigation, and the reason this is still viable: CEL **type-checks statically**.
 AuthRoute can compile + type-check the expression against the known activation
@@ -85,12 +85,12 @@ caught early" guarantee — though not at the Rust *type* level.
 
 ## Implication for AuthRoute
 
-**Decided in [ADR-0006](../adr/0006-policy-expressed-in-cel.md)** (supersedes
-ADR-0002 §D3–D4): policy is a **CEL expression**, not the typed `rule` enum. The
-spec is `defaultPolicy: '<cel>'` plus an ordered `extraPolicy: [{ pathRegex,
-policy: '<cel>' }]`; expressions evaluate against `user`/`groups` (and reserved
-`claims`) and must compile + type-check at admission time, with errors on `.status`.
-The points below recorded the reasoning that led there:
+**Decided in [ADR-0002](../adr/0002-per-route-authorization-crd.md) §D3–D4**: policy
+is a **CEL expression**, not a typed `rule` enum. The spec is `defaultPolicy: '<cel>'`
+plus an ordered `extraPolicy: [{ pathRegex, policy: '<cel>' }]`; expressions evaluate
+against `user`/`groups` (and reserved `claims`) and must compile + type-check at
+admission time, with errors on `.status`. The points below recorded the reasoning
+that led there:
 
 - The typed matchers couldn't express AND / claim-based policy; CEL can, and is the
   ecosystem-standard idiom (`"admins" in groups`).
