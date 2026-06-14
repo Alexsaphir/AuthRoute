@@ -117,9 +117,7 @@ routes:
       - pathRegex: '^/public(/.*)?$'
         policy: 'true'
 "#;
-        let path = std::env::temp_dir().join(format!("authroute-dec-{}.yaml", std::process::id()));
-        std::fs::write(&path, yaml).unwrap();
-        PolicyTable::from_file(&path).unwrap()
+        PolicyTable::from_yaml(yaml).unwrap()
     }
 
     const PORTAL: &str = "https://auth.example.com";

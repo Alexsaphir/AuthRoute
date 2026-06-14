@@ -7,6 +7,7 @@
 //!
 //! [`Config::policy_file`]: crate::config::Config::policy_file
 
+use std::collections::HashMap;
 use std::path::Path;
 
 use authroute_api::{CompiledPolicy, compile_path_regex, compile_policy};
@@ -16,12 +17,12 @@ use serde::Deserialize;
 /// All routes AuthRoute knows about, keyed by host.
 #[derive(Default)]
 pub struct PolicyTable {
-    routes: Vec<Route>,
+    routes: HashMap<String, Route>,
 }
 
-/// One protected host and the compiled policies governing it.
+/// The compiled policies governing one protected host. The host itself is the
+/// `PolicyTable::routes` key.
 struct Route {
-    host: String,
     default_policy: CompiledPolicy,
     extra: Vec<(Regex, CompiledPolicy)>,
 }
@@ -37,13 +38,20 @@ impl PolicyTable {
     /// compiled up front through the shared `authroute-api` path, so the hot
     /// path never parses (ADR-0006).
     pub fn from_file(path: &Path) -> Result<Self, Box<dyn std::error::Error>> {
-        let raw = std::fs::read_to_string(path)?;
-        let file: StubPolicyFile = serde_yaml::from_str(&raw)?;
+        Self::from_yaml(&std::fs::read_to_string(path)?)
+    }
+
+    /// Compile a policy table from a YAML string. The file-backed [`from_file`]
+    /// delegates here; tests can build a table without touching the filesystem.
+    ///
+    /// [`from_file`]: Self::from_file
+    pub fn from_yaml(raw: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let file: StubPolicyFile = serde_yaml::from_str(raw)?;
         let routes = file
             .routes
             .into_iter()
             .map(Route::compile)
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<HashMap<_, _>, _>>()?;
         Ok(Self { routes })
     }
 
@@ -51,7 +59,7 @@ impl PolicyTable {
     /// `extraPolicy` whose regex matches `path`, otherwise the host's
     /// `defaultPolicy`. `None` means no route matched (default-deny).
     pub fn resolve(&self, host: &str, path: &str) -> Option<&CompiledPolicy> {
-        let route = self.routes.iter().find(|r| r.host == host)?;
+        let route = self.routes.get(host)?;
         let matched = route
             .extra
             .iter()
@@ -62,17 +70,17 @@ impl PolicyTable {
 }
 
 impl Route {
-    fn compile(raw: StubRoute) -> Result<Self, Box<dyn std::error::Error>> {
+    fn compile(raw: StubRoute) -> Result<(String, Self), Box<dyn std::error::Error>> {
         let extra = raw
             .extra_policy
             .into_iter()
             .map(|e| Ok((compile_path_regex(&e.path_regex)?, compile_policy(&e.policy)?)))
             .collect::<Result<Vec<_>, authroute_api::PolicyError>>()?;
-        Ok(Self {
-            host: raw.host,
+        let route = Self {
             default_policy: compile_policy(&raw.default_policy)?,
             extra,
-        })
+        };
+        Ok((raw.host, route))
     }
 }
 
@@ -117,11 +125,7 @@ routes:
       - pathRegex: '^/api(/.*)?$'
         policy: 'user != ""'
 "#;
-        let dir = std::env::temp_dir().join(format!("authroute-test-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("policies.yaml");
-        std::fs::write(&path, yaml).unwrap();
-        PolicyTable::from_file(&path).unwrap()
+        PolicyTable::from_yaml(yaml).unwrap()
     }
 
     fn admin() -> Subject {
