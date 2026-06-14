@@ -1,8 +1,9 @@
 # ADR-0002 — Per-route authorization custom resource
 
-- **Status:** Accepted
+- **Status:** Accepted — §D3 and §D4 (the `rule` enum and typed allow-list, incl. Decision items 2–3 and the sketch's `rule:` block) **superseded by [ADR-0006](0006-policy-expressed-in-cel.md)**; all other sections stand.
 - **Date:** 2026-06-13
 - **Supersedes:** —
+- **Superseded in part by:** [ADR-0006](0006-policy-expressed-in-cel.md) (policy is now a CEL expression, not the `rule` enum)
 - **Companion:** [ADR-0001](0001-authroute-a-kubernetes-native-auth-gateway.md), [ADR-0003](0003-identity-via-oidc-oauth.md), [ADR-0004](0004-envoy-gateway-integration-mechanism.md)
 - **Scope:** CRD surface — `v1alpha1`
 - **Informed by:** [research/gateway-api.md](../research/gateway-api.md), [research/authelia.md](../research/authelia.md), [research/envoy-gateway.md](../research/envoy-gateway.md)
