@@ -62,6 +62,7 @@ pub struct TargetRef {
     #[serde(default = "TargetRef::default_group")]
     pub group: String,
     /// Kind of the target. Constrained to the kinds AuthRoute can protect.
+    #[serde(default)]
     pub kind: TargetRefKind,
     /// Name of the target resource in the policy's namespace.
     pub name: String,
@@ -79,6 +80,12 @@ impl TargetRef {
 pub enum TargetRefKind {
     #[serde(rename = "HTTPRoute")]
     HttpRoute,
+}
+
+impl Default for TargetRefKind {
+    fn default() -> Self {
+        Self::HttpRoute
+    }
 }
 
 /// Status reported by the controller via Gateway API `PolicyStatus`
@@ -101,23 +108,6 @@ pub struct Condition {
     pub message: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub observed_generation: Option<i64>,
-}
-
-/// The authenticated identity a policy is evaluated against and that is
-/// propagated downstream as `Remote-*` headers (ADR-0003).
-///
-/// Derived from OIDC claims via configurable mapping (M5). It is bound into the
-/// CEL activation as `user`, `groups`, and `claims`.
-#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
-pub struct Subject {
-    /// `Remote-User` — the canonical username.
-    pub username: String,
-    /// `Remote-Groups` — group memberships.
-    pub groups: Vec<String>,
-    /// `Remote-Name` — human-readable display name.
-    pub name: String,
-    /// `Remote-Email` — email address.
-    pub email: String,
 }
 
 #[cfg(test)]
