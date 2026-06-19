@@ -1,0 +1,22 @@
+[package]
+name = "authroute-controller"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kube = { workspace = true, features = ["client", "runtime", "derive", "rustls-tls", "ws", "unstable-runtime"] }
+k8s-openapi = { workspace = true, features = ["v1_34"] }
+schemars = { workspace = true }
+rustls = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+tokio.workspace = true
+axum = { workspace = true }
+
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+mimalloc = { workspace = true }

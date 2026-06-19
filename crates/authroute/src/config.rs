@@ -33,6 +33,5 @@ impl Config {
 }
 
 fn env(key: &str) -> Option<String> {
-    std::env::var(key).ok().filter(|v| !
-        v.is_empty())
+    std::env::var(key).ok().filter(|v| !v.is_empty())
 }

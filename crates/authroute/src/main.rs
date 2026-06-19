@@ -22,16 +22,16 @@ use std::sync::Arc;
 
 use authroute_api::Subject;
 use axum::{
+    Router,
     extract::State,
-    http::{header::LOCATION, HeaderMap, HeaderValue, StatusCode},
+    http::{HeaderMap, HeaderValue, StatusCode, header::LOCATION},
     response::{IntoResponse, Response},
     routing::{any, get},
-    Router,
 };
 
 use crate::check::CheckRequest;
 use crate::config::Config;
-use crate::decision::{decide, Decision};
+use crate::decision::{Decision, decide};
 use crate::policy::PolicyTable;
 use crate::session::SessionStore;
 

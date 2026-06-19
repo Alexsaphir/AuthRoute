@@ -1,15 +1,14 @@
-use authroute_api::{Subject, sample_subject, TargetRef};
-use regex::Regex;
+use authroute_api::{Subject, TargetRef, sample_subject};
 fn main() {
     println!("AuthRoute policy playground — type `:help` for commands.\n");
 
     let subject = sample_subject();
     print_subject(&subject);
 
-    let target : TargetRef = TargetRef{
+    let _: TargetRef = TargetRef {
         group: "gateway.networking.k8s.io".to_string(),
         kind: authroute_api::TargetRefKind::HttpRoute,
-        name: "grafana".to_string()
+        name: "grafana".to_string(),
     };
 }
 

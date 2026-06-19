@@ -4,26 +4,23 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
-# Runtime-free: this crate is reused by the controller and the webhook, so it
-# must not pull in tokio or kube's client/runtime. See docs/research/kopiur.md.
 [dependencies]
-kube = { workspace = true, features = ["client", "runtime", "derive", "rustls-tls", "unstable-runtime"] }
-# Referenced by the generated CustomResource code; the version feature is left
-# off here and chosen by the binary crates (k8s-openapi's library rule).
+kube = { workspace = true, features = ["derive"] }
 k8s-openapi.workspace = true
 schemars.workspace = true
+
 serde.workspace = true
 serde_json.workspace = true
+
 cel.workspace = true
 regex.workspace = true
+
 thiserror.workspace = true
 
 [dev-dependencies]
-# Enable a version feature so this crate's own tests build standalone.
-k8s-openapi = { workspace = true, features = ["latest"] }
-serde_json.workspace = true
+serde_yaml.workspace = true
 
 [features]
 # k8s-openapi requires exactly one version feature selected by the final artifact.
 # For this library's own builds/tests we pick a recent one; downstream binaries re-select.
-default = ["k8s-openapi/latest"]
+default = ["k8s-openapi/v1_34"]

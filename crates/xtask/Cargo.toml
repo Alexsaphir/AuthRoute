@@ -11,5 +11,5 @@ publish = false
 authroute-api.workspace = true
 kube = { workspace = true, features = ["derive"] }
 # Selects the Kubernetes API version for k8s-openapi (required by a final binary).
-k8s-openapi = { workspace = true, features = ["latest"] }
+k8s-openapi = { workspace = true, features = ["v1_34"] }
 serde_yaml.workspace = true
