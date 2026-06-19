@@ -22,16 +22,16 @@ use std::sync::Arc;
 
 use authroute_api::Subject;
 use axum::{
-    Router,
     extract::State,
-    http::{HeaderMap, HeaderValue, StatusCode, header::LOCATION},
+    http::{header::LOCATION, HeaderMap, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
     routing::{any, get},
+    Router,
 };
 
 use crate::check::CheckRequest;
 use crate::config::Config;
-use crate::decision::{Decision, decide};
+use crate::decision::{decide, Decision};
 use crate::policy::PolicyTable;
 use crate::session::SessionStore;
 
@@ -53,21 +53,21 @@ async fn main() {
 
     let config = Config::from_env();
 
-    let table = match &config.policy_file {
-        Some(path) => match PolicyTable::from_file(path) {
+    let table = match &config.policy_yaml {
+        Some(raw) => match PolicyTable::from_yaml(raw) {
             Ok(table) => {
-                tracing::info!(path = %path.display(), "loaded policy file");
+                tracing::info!("loaded policy from AUTHROUTE_POLICY");
                 table
             }
-            // A bad policy file is a fatal misconfiguration: fail closed loudly
+            // A bad policy config is a fatal misconfiguration: fail closed loudly
             // rather than silently default-denying every route.
             Err(e) => {
-                tracing::error!(path = %path.display(), error = %e, "failed to load policy file");
+                tracing::error!(error = %e, "failed to parse AUTHROUTE_POLICY");
                 std::process::exit(1);
             }
         },
         None => {
-            tracing::warn!("no AUTHROUTE_POLICY_FILE set; all routes default-deny");
+            tracing::warn!("no AUTHROUTE_POLICY set; all routes default-deny");
             PolicyTable::empty()
         }
     };

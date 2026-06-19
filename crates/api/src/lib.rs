@@ -11,10 +11,11 @@ mod authpolicy;
 mod subject;
 mod validate_cel;
 mod validate_regex;
+pub mod hostname;
 
 pub use authpolicy::{
     AuthPolicy, AuthPolicySpec, AuthPolicyStatus, ExtraPolicy, TargetRef, TargetRefKind,
 };
 pub use subject::Subject;
-pub use validate_cel::{CELPolicyError, CompiledCELPolicy, compile_cel_policy, sample_subject};
-pub use validate_regex::{PathRegexError, compile_path_regex};
+pub use validate_cel::{compile_cel_policy, sample_subject, CELPolicyError, CompiledCELPolicy};
+pub use validate_regex::{compile_path_regex, PathRegexError};

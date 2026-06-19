@@ -1,7 +1,5 @@
 //! Runtime configuration, read from the environment at startup.
 
-use std::path::PathBuf;
-
 /// Service configuration. All fields have safe defaults so the binary runs with
 /// no environment set (it then default-denies everything — ADR-0002 §D2).
 #[derive(Clone, Debug)]
@@ -13,9 +11,9 @@ pub struct Config {
     pub portal_url: String,
     /// Name of the session cookie to read (`AUTHROUTE_COOKIE_NAME`).
     pub cookie_name: String,
-    /// Optional path to a stub policy file seeding the in-memory table
-    /// (`AUTHROUTE_POLICY_FILE`). Replaced by the controller in M3.
-    pub policy_file: Option<PathBuf>,
+    /// Inline policy table as a YAML document (`AUTHROUTE_POLICY`). This is the
+    /// M2 stub source; the controller (M3) replaces it. `None` => default-deny.
+    pub policy_yaml: Option<String>,
 }
 
 impl Config {
@@ -29,11 +27,12 @@ impl Config {
                 .unwrap_or_else(|| "https://auth.example.com".to_string()),
             cookie_name: env("AUTHROUTE_COOKIE_NAME")
                 .unwrap_or_else(|| "authroute_session".to_string()),
-            policy_file: env("AUTHROUTE_POLICY_FILE").map(PathBuf::from),
+            policy_yaml: env("AUTHROUTE_POLICY"),
         }
     }
 }
 
 fn env(key: &str) -> Option<String> {
-    std::env::var(key).ok().filter(|v| !v.is_empty())
+    std::env::var(key).ok().filter(|v| !
+        v.is_empty())
 }

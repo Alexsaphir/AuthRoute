@@ -40,3 +40,13 @@ regex = "1"
 
 # Errors / utilities
 thiserror = "2"
+
+
+[profile.release]
+# A long-running daemon shipped in a distroless image: optimize for a small,
+# fast binary. panic = "abort" drops unwinding tables (any panic should crash
+# the pod and let Kubernetes restart it, not unwind).
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"

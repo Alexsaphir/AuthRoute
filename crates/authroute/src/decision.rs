@@ -124,7 +124,12 @@ routes:
 
     #[test]
     fn admin_allowed_with_subject() {
-        let d = decide(&table(), PORTAL, &req("app.example.com", "/"), Some(admin()));
+        let d = decide(
+            &table(),
+            PORTAL,
+            &req("app.example.com", "/"),
+            Some(admin()),
+        );
         assert_eq!(d, Decision::Allow(Some(admin())));
     }
 
@@ -148,7 +153,12 @@ routes:
 
     #[test]
     fn public_path_allows_anonymous() {
-        let d = decide(&table(), PORTAL, &req("app.example.com", "/public/x?y=1"), None);
+        let d = decide(
+            &table(),
+            PORTAL,
+            &req("app.example.com", "/public/x?y=1"),
+            None,
+        );
         assert_eq!(d, Decision::Allow(None));
     }
 
@@ -160,7 +170,12 @@ routes:
             Decision::Redirect(_)
         ));
         assert_eq!(
-            decide(&table(), PORTAL, &req("nope.example.com", "/"), Some(admin())),
+            decide(
+                &table(),
+                PORTAL,
+                &req("nope.example.com", "/"),
+                Some(admin())
+            ),
             Decision::Forbidden
         );
     }

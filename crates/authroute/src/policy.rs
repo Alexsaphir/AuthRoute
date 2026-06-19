@@ -1,30 +1,31 @@
 //! The in-memory policy table the request path evaluates against.
 //!
-//! In M2 this is seeded from a stub YAML file ([`Config::policy_file`]). In M3
-//! the controller will populate it by reconciling `HTTPRoute`s and
+//! In M2 this is seeded from an inline YAML document ([`Config::policy_yaml`]).
+//! In M3 the controller will populate it by reconciling `HTTPRoute`s and
 //! `AuthPolicy`s; the lookup contract here (resolve a host+path to the policy
 //! expression that governs it, ADR-0002 §D5b) stays the same.
 //!
-//! [`Config::policy_file`]: crate::config::Config::policy_file
+//! [`Config::policy_yaml`]: crate::config::Config::policy_yaml
 
 use std::collections::HashMap;
-use std::path::Path;
 
-use authroute_api::{CompiledPolicy, compile_path_regex, compile_policy};
+use authroute_api::{CompiledCELPolicy, compile_cel_policy, compile_path_regex};
 use regex::Regex;
 use serde::Deserialize;
+
+use authroute_api::hostname::Hostname;
 
 /// All routes AuthRoute knows about, keyed by host.
 #[derive(Default)]
 pub struct PolicyTable {
-    routes: HashMap<String, Route>,
+    routes: HashMap<Hostname, RoutePolicy>,
 }
 
 /// The compiled policies governing one protected host. The host itself is the
 /// `PolicyTable::routes` key.
-struct Route {
-    default_policy: CompiledPolicy,
-    extra: Vec<(Regex, CompiledPolicy)>,
+struct RoutePolicy {
+    default_policy: CompiledCELPolicy,
+    extra: Vec<(Regex, CompiledCELPolicy)>,
 }
 
 impl PolicyTable {
@@ -34,23 +35,13 @@ impl PolicyTable {
         Self::default()
     }
 
-    /// Load and compile a stub policy file. Every expression and regex is
-    /// compiled up front through the shared `authroute-api` path, so the hot
-    /// path never parses (ADR-0006).
-    pub fn from_file(path: &Path) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::from_yaml(&std::fs::read_to_string(path)?)
-    }
-
-    /// Compile a policy table from a YAML string. The file-backed [`from_file`]
-    /// delegates here; tests can build a table without touching the filesystem.
-    ///
-    /// [`from_file`]: Self::from_file
+    /// Compile a policy table from a YAML string.
     pub fn from_yaml(raw: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let file: StubPolicyFile = serde_yaml::from_str(raw)?;
         let routes = file
             .routes
             .into_iter()
-            .map(Route::compile)
+            .map(RoutePolicy::compile)
             .collect::<Result<HashMap<_, _>, _>>()?;
         Ok(Self { routes })
     }
@@ -58,7 +49,7 @@ impl PolicyTable {
     /// Resolve the policy expression governing `host` + `path`: the first
     /// `extraPolicy` whose regex matches `path`, otherwise the host's
     /// `defaultPolicy`. `None` means no route matched (default-deny).
-    pub fn resolve(&self, host: &str, path: &str) -> Option<&CompiledPolicy> {
+    pub fn resolve(&self, host: &Hostname, path: &str) -> Option<&CompiledCELPolicy> {
         let route = self.routes.get(host)?;
         let matched = route
             .extra
@@ -69,15 +60,20 @@ impl PolicyTable {
     }
 }
 
-impl Route {
-    fn compile(raw: StubRoute) -> Result<(String, Self), Box<dyn std::error::Error>> {
+impl RoutePolicy {
+    fn compile(raw: StubRoute) -> Result<(Hostname, Self), Box<dyn std::error::Error>> {
         let extra = raw
             .extra_policy
             .into_iter()
-            .map(|e| Ok((compile_path_regex(&e.path_regex)?, compile_policy(&e.policy)?)))
-            .collect::<Result<Vec<_>, authroute_api::PolicyError>>()?;
+            .map(|e| {
+                Ok((
+                    compile_path_regex(&e.path_regex)?,
+                    compile_cel_policy(&e.policy)?,
+                ))
+            })
+            .collect::<Result<Vec<_>, Box<dyn std::error::Error>>>()?;
         let route = Self {
-            default_policy: compile_policy(&raw.default_policy)?,
+            default_policy: compile_cel_policy(&raw.default_policy)?,
             extra,
         };
         Ok((raw.host, route))
@@ -96,7 +92,7 @@ struct StubPolicyFile {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct StubRoute {
-    host: String,
+    host: Hostname,
     default_policy: String,
     #[serde(default)]
     extra_policy: Vec<StubExtra>,
@@ -138,13 +134,15 @@ routes:
 
     #[test]
     fn unknown_host_resolves_to_none() {
-        assert!(table().resolve("other.example.com", "/").is_none());
+        assert!(table().resolve(&"other.example.com".into(), "/").is_none());
     }
 
     #[test]
     fn default_policy_applies_without_match() {
         let t = table();
-        let p = t.resolve("grafana.example.com", "/dashboards").unwrap();
+        let p = t
+            .resolve(&"grafana.example.com".into(), "/dashboards")
+            .unwrap();
         assert!(p.evaluate(&admin()).unwrap());
         assert!(!p.evaluate(&Subject::default()).unwrap());
     }
@@ -153,10 +151,12 @@ routes:
     fn first_matching_extra_policy_wins() {
         let t = table();
         // /public is open to everyone, even the anonymous Subject.
-        let public = t.resolve("grafana.example.com", "/public/img.png").unwrap();
+        let public = t
+            .resolve(&"grafana.example.com".into(), "/public/img.png")
+            .unwrap();
         assert!(public.evaluate(&Subject::default()).unwrap());
         // /api requires any authenticated user.
-        let api = t.resolve("grafana.example.com", "/api/v1").unwrap();
+        let api = t.resolve(&"grafana.example.com".into(), "/api/v1").unwrap();
         assert!(!api.evaluate(&Subject::default()).unwrap());
         assert!(api.evaluate(&admin()).unwrap());
     }

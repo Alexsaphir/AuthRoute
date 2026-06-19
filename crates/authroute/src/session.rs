@@ -69,7 +69,10 @@ mod tests {
     fn resolves_known_token() {
         let store = SessionStore::stub();
         let subject = store
-            .resolve(Some("foo=bar; authroute_session=admin-token"), "authroute_session")
+            .resolve(
+                Some("foo=bar; authroute_session=admin-token"),
+                "authroute_session",
+            )
             .unwrap();
         assert_eq!(subject.username, "admin@example.com");
     }
@@ -77,8 +80,16 @@ mod tests {
     #[test]
     fn unknown_or_missing_cookie_is_anonymous() {
         let store = SessionStore::stub();
-        assert!(store.resolve(Some("authroute_session=nope"), "authroute_session").is_none());
-        assert!(store.resolve(Some("other=1"), "authroute_session").is_none());
+        assert!(
+            store
+                .resolve(Some("authroute_session=nope"), "authroute_session")
+                .is_none()
+        );
+        assert!(
+            store
+                .resolve(Some("other=1"), "authroute_session")
+                .is_none()
+        );
         assert!(store.resolve(None, "authroute_session").is_none());
     }
 }

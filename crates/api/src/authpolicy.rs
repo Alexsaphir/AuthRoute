@@ -53,7 +53,7 @@ pub struct ExtraPolicy {
 /// Reference to the routing resource an [`AuthPolicy`] attaches to.
 ///
 /// Models the Gateway API `LocalPolicyTargetReference` shape, but the kind is a
-/// closed enum so an unsupported target is unrepresentable (ADR-0001).
+/// closed enum, so an unsupported target is unrepresentable (ADR-0001).
 /// Same-namespace only (ADR-0002 §D7).
 #[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -142,6 +142,6 @@ mod tests {
         assert_eq!(crd.spec.group, "authroute.dev");
         assert_eq!(crd.spec.names.kind, "AuthPolicy");
         assert_eq!(crd.spec.versions[0].name, "v1alpha1");
-        assert!(crd.spec.scope == "Namespaced");
+        assert_eq!(crd.spec.scope, "Namespaced");
     }
 }
