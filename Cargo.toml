@@ -4,7 +4,6 @@ members = [
     "crates/api",
     "crates/authroute",
     "crates/controller",
-    "crates/telemetry",
     "crates/webhook",
     "crates/xtask",
 ]
