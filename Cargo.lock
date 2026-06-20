@@ -2571,6 +2571,8 @@ dependencies = [
  "authroute-api",
  "k8s-openapi",
  "kube",
+ "serde",
+ "serde_json",
  "serde_yaml",
 ]
 

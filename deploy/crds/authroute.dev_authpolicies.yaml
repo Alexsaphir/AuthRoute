@@ -71,6 +71,7 @@ spec:
                     description: API group of the target. Only `gateway.networking.k8s.io` is meaningful.
                     type: string
                   kind:
+                    default: HTTPRoute
                     description: Kind of the target. Constrained to the kinds AuthRoute can protect.
                     enum:
                     - HTTPRoute
@@ -79,7 +80,6 @@ spec:
                     description: Name of the target resource in the policy's namespace.
                     type: string
                 required:
-                - kind
                 - name
                 type: object
             required:

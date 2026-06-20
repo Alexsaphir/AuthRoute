@@ -2,3 +2,5 @@
 
 # JetBrains IDE
 /.idea/
+
+kubeconfig
