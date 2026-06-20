@@ -17,7 +17,6 @@ license = "AGPL-3.0-only"
 [workspace.dependencies]
 # Internal crates
 authroute-api = { path = "crates/api" }
-authroute-telemetry = { path = "crates/telemetry" }
 
 # Kubernetes / controller-runtime
 kube = { version = "4.0.0", default-features = false }

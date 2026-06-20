@@ -31,6 +31,7 @@ pub struct AuthPolicySpec {
     /// CEL boolean expression evaluated against the session [`Subject`]; `true`
     /// allows, `false` denies. Applies to the whole target unless an
     /// [`ExtraPolicy`] matches first (ADR-0002 §D3–D4).
+    #[schemars(length(min = 1))]
     pub default_policy: String,
 
     /// Ordered path overrides; the first whose `pathRegex` matches the request
@@ -45,8 +46,10 @@ pub struct AuthPolicySpec {
 pub struct ExtraPolicy {
     /// Regex matched against the request path; the same `regex` engine is used
     /// at admission and request time (ADR-0006).
+    #[schemars(length(min = 1))]
     pub path_regex: String,
     /// CEL boolean expression applied when `pathRegex` matches.
+    #[schemars(length(min = 1))]
     pub policy: String,
 }
 
@@ -65,6 +68,7 @@ pub struct TargetRef {
     #[serde(default)]
     pub kind: TargetRefKind,
     /// Name of the target resource in the policy's namespace.
+    #[schemars(length(min = 1))]
     pub name: String,
 }
 
@@ -76,16 +80,11 @@ impl TargetRef {
 
 /// The kinds an [`AuthPolicy`] may target. Closed so invalid targets cannot be
 /// expressed (ADR-0001); v1alpha1 supports `HTTPRoute` only (ADR-0002 §D1).
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq, JsonSchema)]
 pub enum TargetRefKind {
+    #[default]
     #[serde(rename = "HTTPRoute")]
     HttpRoute,
-}
-
-impl Default for TargetRefKind {
-    fn default() -> Self {
-        Self::HttpRoute
-    }
 }
 
 /// Status reported by the controller via Gateway API `PolicyStatus`
