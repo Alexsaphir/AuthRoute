@@ -10,37 +10,37 @@ kind: ClusterRole
 metadata:
   name: authroute-controller
 rules:
-  - apiGroups:
-      - authroute.dev
-    resources:
-      - authpolicies
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - authroute.dev
-    resources:
-      - authpolicies/status
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - gateway.networking.k8s.io
-    resources:
-      - httproutes
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - ''
-    resources:
-      - events
-    verbs:
-      - create
-      - patch
+- apiGroups:
+  - authroute.dev
+  resources:
+  - authpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authroute.dev
+  resources:
+  - authpolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - httproutes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -51,9 +51,9 @@ roleRef:
   kind: ClusterRole
   name: authroute-controller
 subjects:
-  - kind: ServiceAccount
-    name: authroute-controller
-    namespace: authroute-system
+- kind: ServiceAccount
+  name: authroute-controller
+  namespace: authroute-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -61,18 +61,18 @@ metadata:
   name: authroute-controller
   namespace: authroute-system
 rules:
-  - apiGroups:
-      - coordination.k8s.io
-    resources:
-      - leases
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -84,6 +84,6 @@ roleRef:
   kind: Role
   name: authroute-controller
 subjects:
-  - kind: ServiceAccount
-    name: authroute-controller
-    namespace: authroute-system
+- kind: ServiceAccount
+  name: authroute-controller
+  namespace: authroute-system

@@ -29,6 +29,7 @@ Proposed → Accepted → (Deprecated | Superseded by NNNN)
 | 0005 | [Session storage: server-side store over the Redis protocol](0005-session-storage.md) | Accepted |
 | 0006 | [Validating AuthPolicy via an admission webhook](0006-validating-authpolicy.md)     | Accepted |
 | 0007 | [Layered Cargo workspace and manifest codegen](0007-layered-workspace-and-manifest-codegen.md) | Accepted |
+| 0008 | [Self-managed serving TLS for the admission webhook](0008-self-managed-webhook-tls.md) | Accepted |
 
 Supporting research notes live in [`../research/`](../research/).
 

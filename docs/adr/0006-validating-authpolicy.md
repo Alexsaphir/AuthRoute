@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-06-14
 - **Supersedes:** —
+- **Amended by:** [ADR-0008](0008-self-managed-webhook-tls.md) — §3's serving-cert clause is superseded; the cert is self-managed, not Helm-managed.
 - **Companion:** [ADR-0002](0002-per-route-authorization-crd.md)
 - **Scope:** AuthPolicy validation & status — `v1alpha1`
 - **Informed by:** [research/gateway-api.md](../research/gateway-api.md), [research/cel-policy.md](../research/cel-policy.md), [research/kopiur.md](../research/kopiur.md)
